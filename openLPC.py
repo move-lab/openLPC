@@ -18,6 +18,7 @@ def main():
     if len(sys.argv) >= 4:
         mode = str(sys.argv[3])
 
+    # TODO: implement proper arguments for CLI
     # parser = argparse.ArgumentParser(
     #     description='Censor license plates in image- and videofiles')
     # parser.add_argument(
@@ -34,7 +35,7 @@ def main():
     # switch modes
     if mode == 'image':
         lpc.config(
-            matrix=1,
+            matrix=matrix_size,
             multiplier=2,
             screen_view=False,
             debug=False,
@@ -43,26 +44,24 @@ def main():
         lpc.censor_image(filepath)
     elif mode == 'imagestack':
         lpc.config(
-            matrix=1,
+            matrix=matrix_size,
             multiplier=2,
             screen_view=False,
             debug=False,
             output='image',
             openALPR_config='openalpr.conf')
-
         for fname in os.listdir(filepath):
             path = os.path.join(filepath, fname)
             if os.path.isdir(path):
                 # skip directories
                 continue
-
             lpc.censor_image(path)
     elif mode == 'video':
         lpc.config(
-            matrix=1,
+            matrix=matrix_size,
             multiplier=2,
             screen_view=False,
-            debug=True,
+            debug=False,
             output='video',
             openALPR_config='openalpr.conf')
         lpc.censor_video(filepath)

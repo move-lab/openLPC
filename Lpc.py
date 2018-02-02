@@ -13,7 +13,7 @@ class Lpc(object):
     gl_matrix = 1
     gl_multiplier = 2
     gl_screen_view = False
-    gl_debug = True
+    gl_debug = False
     gl_output = 'image'
 
     def __init__(self):
@@ -33,7 +33,9 @@ class Lpc(object):
         #self.alpr.set_default_region('eu')
 
         if self.gl_debug:
+            print '--------------------------------'
             print '-----------DEBUG MODE-----------'
+            print '--------------------------------'
 
     def config(self,
                matrix=1,
@@ -53,7 +55,7 @@ class Lpc(object):
         # Call when completely done to release memory
         self.alpr.unload()
 
-    def save_file(self, ndarray_image, frame=''):
+    def __save_file(self, ndarray_image, frame=''):
         filename_without_ext, file_extension = os.path.splitext(
             os.path.basename(self.gl_filepath))
 
@@ -72,7 +74,7 @@ class Lpc(object):
         cv2.imwrite(save_path, ndarray_image)
         print 'saved file in: ' + save_path
 
-    def search_and_censor(self, ndarray_image):
+    def __search_and_censor(self, ndarray_image):
         if not ndarray_image.size:
             print 'file does not exist'
             sys.exit(1)
@@ -113,7 +115,7 @@ class Lpc(object):
 
 
     # TODO: should not return resized image but true coordinates where to censore the image
-    def tile_and_merge(self, ndarray_image, matrix=1):
+    def __tile_and_merge(self, ndarray_image, matrix=1):
         censored_tiles = []
 
         if not ndarray_image.size:
@@ -133,7 +135,7 @@ class Lpc(object):
                 x1 = x0 + width
 
                 print 'start censoring tile ' + str(row) + 'x' + str(col)
-                censored_tile = self.search_and_censor(
+                censored_tile = self.__search_and_censor(
                     ndarray_image[y0:y1, x0:x1])
                 censored_tiles.append(censored_tile)
 
@@ -172,12 +174,12 @@ class Lpc(object):
             int(img.shape[0])) + ' px'
 
         if self.gl_matrix == 1:
-            merged_img = self.search_and_censor(img)
+            merged_img = self.__search_and_censor(img)
         elif self.gl_matrix > 1:
-            merged_img = self.tile_and_merge(img, self.gl_matrix)
+            merged_img = self.__tile_and_merge(img, self.gl_matrix)
 
         if self.gl_output == 'image':
-            self.save_file(merged_img, frame)
+            self.__save_file(merged_img, frame)
 
             # show image on screen if gl_screen_view is true
             if self.gl_screen_view:
@@ -230,7 +232,7 @@ class Lpc(object):
                     out.write(censored_frame)
 
                 if self.gl_output == 'image':
-                    self.save_file(censored_frame, pos_frame)
+                    self.__save_file(censored_frame, pos_frame)
 
                 # show frame on screen if gl_screen_view is true
                 if self.gl_screen_view:
