@@ -1,0 +1,4 @@
+.DS_store
+.vscode
+/test_images/*
+!/test_images/.gitkeep
