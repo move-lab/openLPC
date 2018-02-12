@@ -8,63 +8,91 @@ def main():
 
     lpc = Lpc()
 
-    filepath = sys.argv[1]
-    matrix_size = 1
-    mode = 'image'
+    parser = argparse.ArgumentParser(
+        description='Censor license plates in image- and videofiles')
+    parser.add_argument(
+        '-size',
+        action='store',
+        default=2,
+        dest='matrix_size',
+        help='Size of the matrix',
+        type=int)
+    parser.add_argument(
+        '-multiplier',
+        action='store',
+        default=2,
+        dest='multiplier',
+        help='Image/Frame mulitplied by given value',
+        type=int)
+    parser.add_argument(
+        '-path',
+        action='store',
+        dest='filepath',
+        help='path to the file (for imagestack: path to the folder)',
+        type=str,
+        required=True)
+    parser.add_argument(
+        '-mode',
+        action='store',
+        default='image',
+        dest='mode',
+        help='mode (image, imagestack, video)',
+        type=str)
+    parser.add_argument(
+        '-output',
+        action='store',
+        default='image',
+        dest='output',
+        help='output format (video, image)',
+        type=str)
+    parser.add_argument(
+        '-show',
+        action='store',
+        default=False,
+        dest='screen_view',
+        help='Display the output (screen required)')
+    parser.add_argument(
+        '-debug',
+        action='store_true',
+        default=False,
+        dest='debug',
+        help='Debug mode (pink bar instead of blurred plate)')
 
-    if len(sys.argv) >= 3:
-        matrix_size = int(sys.argv[2])
-
-    if len(sys.argv) >= 4:
-        mode = str(sys.argv[3])
-
-    # TODO: implement proper arguments for CLI
-    # parser = argparse.ArgumentParser(
-    #     description='Censor license plates in image- and videofiles')
-    # parser.add_argument(
-    #     '--mode',
-    #     dest='accumulate',
-    #     action='store_const',
-    #     const=sum,
-    #     default=max,
-    #     help='sum the integers (default: find the max)')
-
-    # args = parser.parse_args()
-    # print args.accumulate(args.integers)
+    args = parser.parse_args()
 
     # switch modes
-    if mode == 'image':
+    if args.mode == 'image':
         lpc.config(
-            matrix=matrix_size,
-            multiplier=2,
-            screen_view=False,
-            debug=False,
-            output='image',
+            matrix=args.matrix_size,
+            multiplier=args.multiplier,
+            screen_view=args.screen_view,
+            debug=args.debug,
+            output=args.output,
             openALPR_config='openalpr.conf')
-        lpc.censor_image(filepath)
-    elif mode == 'imagestack':
+        lpc.censor_image(args.filepath)
+    elif args.mode == 'imagestack':
         lpc.config(
-            matrix=matrix_size,
-            multiplier=2,
-            screen_view=False,
-            debug=False,
-            output='image',
+            matrix=args.matrix_size,
+            multiplier=args.multiplier,
+            screen_view=args.screen_view,
+            debug=args.debug,
+            output=args.output,
             openALPR_config='openalpr.conf')
-        for fname in os.listdir(filepath):
-            path = os.path.join(filepath, fname)
+        for fname in os.listdir(args.filepath):
+            path = os.path.join(args.filepath, fname)
             if os.path.isdir(path):
                 # skip directories
                 continue
             lpc.censor_image(path)
-    elif mode == 'video':
+    elif args.mode == 'video':
         lpc.config(
-            matrix=matrix_size,
-            multiplier=2,
-            screen_view=False,
-            debug=False,
-            output='video',
+            matrix=args.matrix_size,
+            multiplier=args.multiplier,
+            screen_view=args.screen_view,
+            debug=args.debug,
+            output=args.output,
             openALPR_config='openalpr.conf')
-        lpc.censor_video(filepath)
+        lpc.censor_video(args.filepath)
 
     # unload openALPR
     lpc.unload()
