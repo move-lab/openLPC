@@ -11,18 +11,18 @@ def main():
     parser = argparse.ArgumentParser(
         description='Censor license plates in image- and videofiles')
     parser.add_argument(
-        '-size',
+        '-msize',
         action='store',
-        default=2,
+        default=1,
         dest='matrix_size',
-        help='Size of the matrix',
+        help='Size of the tiling matrix',
         type=int)
     parser.add_argument(
         '-multiplier',
         action='store',
         default=2,
         dest='multiplier',
-        help='Image/Frame mulitplied by given value',
+        help='Image/Frame mulitplied by given value for detection accuracy',
         type=int)
     parser.add_argument(
         '-path',
@@ -36,7 +36,7 @@ def main():
         action='store',
         default='image',
         dest='mode',
-        help='mode (image, imagestack, video)',
+        help='modes (image, imagestack, video)',
         type=str)
     parser.add_argument(
         '-output',
@@ -50,7 +50,7 @@ def main():
         action='store_true',
         default=False,
         dest='screen_view',
-        help='Display the output (screen required)')
+        help='Display the output with cv2.imshow (screen required)')
     parser.add_argument(
         '-debug',
         action='store_true',
