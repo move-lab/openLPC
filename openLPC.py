@@ -47,7 +47,7 @@ def main():
         type=str)
     parser.add_argument(
         '-show',
-        action='store',
+        action='store_true',
         default=False,
         dest='screen_view',
         help='Display the output (screen required)')
