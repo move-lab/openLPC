@@ -43,30 +43,33 @@ The `openalpr.config` file contains the configuration for **openALPR**
 
 `python openLPC.py -path /path/to/imagefile.jpg -mode image`
 
-**input**:
+**input**:<br>
 ![Input](./docs/image_input.png)
 
-**output**:
-![Output](./docs/image_input.png)
+**output**:<br>
+![Output](./docs/image_output.png)
+
+**output debug**:<br>
+![Output](./docs/image_output_debug.png)
 
 ##### Imagestack:
 
 `python openLPC.py -path /path/to/folder -mode imagestack`
 
-**input**:
+**input**:<br>
 ![Input](./docs/imagestack_input.png)
 
-**output**:
+**output**:<br>
 ![Output](./docs/imagestack_output.png)
 
 ##### Video:
 
 `python openLPC.py -path /path/to/videofile.avi -mode video -output video`
 
-**input**:
+**input**:<br>
 ![Input](./docs/video_input.avi)
 
-**output**:
+**output**:<br>
 ![Output](./docs/video_output.avi)
 
 ### Licence
