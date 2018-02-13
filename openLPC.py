@@ -37,7 +37,8 @@ def main():
         default='image',
         dest='mode',
         help='modes (image, imagestack, video)',
-        type=str)
+        type=str,
+        required=True)
     parser.add_argument(
         '-output',
         action='store',
