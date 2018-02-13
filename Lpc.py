@@ -32,11 +32,6 @@ class Lpc(object):
         # Example: md for maryland
         #self.alpr.set_default_region('eu')
 
-        if self.gl_debug:
-            print '--------------------------------'
-            print '-----------DEBUG MODE-----------'
-            print '--------------------------------'
-
     def config(self,
                matrix=1,
                multiplier=2,
@@ -50,6 +45,11 @@ class Lpc(object):
         self.gl_debug = debug
         self.gl_output = output
         self.alpr = Alpr('eu', openALPR_config, 'runtime_data')
+
+        if self.gl_debug:
+            print '--------------------------------'
+            print '-----------DEBUG MODE-----------'
+            print '--------------------------------'
 
     def unload(self):
         # Call when completely done to release memory
@@ -112,7 +112,6 @@ class Lpc(object):
                               (true_x2, true_y2), (255, 0, 251), -1)
 
         return self.gl_original_image
-
 
     # TODO: should not return resized image but true coordinates where to censore the image
     def __tile_and_merge(self, ndarray_image, matrix=1):
