@@ -1,6 +1,7 @@
 import cv2
 import sys
 import os
+import datetime
 import numpy as np
 from openalpr import Alpr
 
@@ -15,6 +16,7 @@ class Lpc(object):
     gl_screen_view = False
     gl_debug = False
     gl_output = 'image'
+    gl_counter = 0
 
     def __init__(self):
         super(Lpc, self).__init__()
@@ -68,8 +70,10 @@ class Lpc(object):
 
         save_path = os.path.dirname(
             self.gl_filepath) + '/censored/' + filename_without_ext + '_' + str(
-                self.gl_matrix) + 'x' + str(self.gl_matrix) + '_' + str(
-                    frame) + '_censored' + file_extension
+                self.gl_matrix) + 'x' + str(
+                    self.gl_matrix) + '_' + str(frame) + '_censored_' + str(
+                        datetime.datetime.now().strftime(
+                            '%Y-%m-%d_%H-%M-%S')) + file_extension
 
         cv2.imwrite(save_path, ndarray_image)
         print 'saved file in: ' + save_path
@@ -82,11 +86,13 @@ class Lpc(object):
         analyzed_file = self.alpr.recognize_ndarray(ndarray_image)
 
         if not analyzed_file['results']:
-            print 'No license plate(s) detected'
+            print 'No license plate(s) detected | total: ' + str(self.gl_counter)
             # sys.exit(1)
         if analyzed_file['results']:
+            self.gl_counter = self.gl_counter + len(analyzed_file['results'])
             print 'found ' + str(len(
-                analyzed_file['results'])) + ' licenece plate(s)'
+                analyzed_file['results'])) + ' licenece plate(s) | total: ' + str(self.gl_counter)
+
         # loop through the results
         for result in analyzed_file['results']:
             # x,y coordinates of opposite corners of license plate
@@ -204,7 +210,9 @@ class Lpc(object):
             os.path.basename(self.gl_filepath))[0]
         save_path = os.path.dirname(
             self.gl_filepath) + '/' + filename_without_ext + '_' + str(
-                self.gl_matrix) + 'x' + str(self.gl_matrix) + '_censored.avi'
+                self.gl_matrix
+            ) + 'x' + str(self.gl_matrix) + '_censored_' + str(
+                datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')) + '.avi'
 
         # Define the codec and create VideoWriter object
         fourcc = cv2.cv.CV_FOURCC(*'XVID')
@@ -258,4 +266,5 @@ class Lpc(object):
         cap.release()
         out.release()
         cv2.destroyAllWindows()
-        print 'finished video censoring'
+        print 'total license plates counted: ' + str(self.gl_counter)
+        print 'saved censored video file in: ' + save_path
