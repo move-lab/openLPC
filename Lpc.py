@@ -95,7 +95,7 @@ class Lpc(object):
         postprocess_min_confidence = ''
         postprocess_confidence_skip_level = ''
 
-        # get config file info
+        # get openALPR config file info
         with open('openalpr.conf') as f:
             content = f.readlines()
             content = [x.strip() for x in content]
