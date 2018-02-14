@@ -17,6 +17,8 @@ class Lpc(object):
     gl_debug = False
     gl_output = 'image'
     gl_counter = 0
+    gl_current_frame_pos = 0
+    gl_pattern = 'eu'
 
     def __init__(self):
         super(Lpc, self).__init__()
@@ -47,6 +49,7 @@ class Lpc(object):
         self.gl_screen_view = screen_view
         self.gl_debug = debug
         self.gl_output = output
+        self.gl_pattern = pattern
         self.alpr = Alpr(pattern, openALPR_config, 'runtime_data')
 
         if self.gl_debug:
@@ -58,12 +61,15 @@ class Lpc(object):
         # Call when completely done to release memory
         self.alpr.unload()
 
-    def __save_file(self, ndarray_image, frame=''):
+    def __create_save_path(self):
         filename_without_ext, file_extension = os.path.splitext(
             os.path.basename(self.gl_filepath))
 
-        if len(str(frame)) > 0:
+        if self.gl_current_frame_pos > 0:
             file_extension = '.png'
+
+        if self.gl_output == 'video':
+            file_extension = '.avi'
 
         if not os.path.exists(
                 os.path.dirname(self.gl_filepath) + '/censored/'):
@@ -71,14 +77,11 @@ class Lpc(object):
 
         save_path = os.path.dirname(
             self.gl_filepath) + '/censored/' + filename_without_ext + '_' + str(
-                self.gl_matrix) + 'x' + str(
-                    self.gl_matrix) + '_' + str(frame) + '_censored_' + str(
-                        datetime.datetime.now().strftime(
-                            '%Y-%m-%d_%H-%M-%S')) + file_extension
+                self.gl_current_frame_pos) + '_censored_' + str(
+                    datetime.datetime.now().strftime(
+                        '%Y-%m-%d_%H-%M-%S')) + file_extension
 
-        cv2.imwrite(save_path, ndarray_image)
-        print 'saved file in: ' + save_path
-        self.__write_log(save_path)
+        return save_path
 
     def __write_log(self, filepath):
         if os.path.exists('./logs/log.txt'):
@@ -125,6 +128,7 @@ class Lpc(object):
         log.write('Censored File:   ' + filepath + '\n')
         log.write('Matrix Size:     ' + str(self.gl_matrix) + '\n')
         log.write('Multiplier:      ' + str(self.gl_multiplier) + '\n')
+        log.write('Pattern:         ' + str(self.gl_pattern) + '\n')
         log.write('Output:          ' + self.gl_output + '\n')
         log.write('Total LPs found: ' + str(self.gl_counter) + '\n')
         log.write('ScrennView:      ' + str(self.gl_screen_view) + '\n')
@@ -140,8 +144,6 @@ class Lpc(object):
         log.write('     ' + postprocess_confidence_skip_level + '\n')
         log.write('-------------------------------' + '\n')
         log.close()
-
-        print 'logfile at: ./logs/log.txt'
 
     def __search_and_censor(self, ndarray_image):
         if not ndarray_image.size:
@@ -227,7 +229,7 @@ class Lpc(object):
 
         return np.concatenate(tile_row, axis=0)
 
-    def censor_image(self, filepath, frame=''):
+    def censor_image(self, filepath):
         if not type(filepath) is np.ndarray:
             self.gl_filepath = filepath
             img = cv2.imread(filepath)
@@ -239,7 +241,8 @@ class Lpc(object):
         self.gl_original_image = img
 
         print 'resize image (x' + str(
-            self.gl_multiplier) + '): ' + self.gl_filepath + ' ' + str(frame)
+            self.gl_multiplier) + '): ' + self.gl_filepath + ' Frame: ' + str(
+                self.gl_current_frame_pos)
         img = cv2.resize(
             img, (width * self.gl_multiplier, height * self.gl_multiplier))
         print 'new image size is: ' + str(int(img.shape[1])) + 'x' + str(
@@ -251,7 +254,10 @@ class Lpc(object):
             merged_img = self.__tile_and_merge(img, self.gl_matrix)
 
         if self.gl_output == 'image':
-            self.__save_file(merged_img, frame)
+            save_path = self.__create_save_path()
+            cv2.imwrite(save_path, merged_img)
+            print 'saved file in: ' + save_path
+            self.__write_log(save_path)
 
             # show image on screen if gl_screen_view is true
             if self.gl_screen_view:
@@ -272,19 +278,8 @@ class Lpc(object):
         height = cap.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
         framerate = cap.get(cv2.cv.CV_CAP_PROP_FPS)
 
-        # check if censored folder exists
-        if not os.path.exists(
-                os.path.dirname(self.gl_filepath) + '/censored/'):
-            os.makedirs(os.path.dirname(self.gl_filepath) + '/censored/')
-
         # build output path/name
-        filename_without_ext = os.path.splitext(
-            os.path.basename(self.gl_filepath))[0]
-        save_path = os.path.dirname(
-            self.gl_filepath
-        ) + '/censored/' + filename_without_ext + '_' + str(
-            self.gl_matrix) + 'x' + str(self.gl_matrix) + '_censored_' + str(
-                datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')) + '.avi'
+        save_path = self.__create_save_path()
 
         # Define the codec and create VideoWriter object
         fourcc = cv2.cv.CV_FOURCC(*'XVID')
@@ -296,22 +291,26 @@ class Lpc(object):
             cv2.waitKey(1000)
             print 'Wait for the header'
 
-        pos_frame = cap.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
+        self.gl_current_frame_pos = cap.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
         while True:
             flag, frame = cap.read()
             if flag:
                 # The frame is ready and already captured
-                pos_frame = cap.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
+                self.gl_current_frame_pos = cap.get(
+                    cv2.cv.CV_CAP_PROP_POS_FRAMES)
 
                 # pass frame to image censoring method
-                censored_frame = self.censor_image(frame, pos_frame)
+                censored_frame = self.censor_image(frame)
 
                 # switch between video file and image stack
                 if self.gl_output == 'video':
                     out.write(censored_frame)
 
                 if self.gl_output == 'image':
-                    self.__save_file(censored_frame, pos_frame)
+                    save_path = self.__create_save_path()
+                    cv2.imwrite(save_path, censored_frame)
+                    print 'saved file in: ' + save_path
+                    self.__write_log(save_path)
 
                 # show frame on screen if gl_screen_view is true
                 if self.gl_screen_view:
@@ -321,7 +320,8 @@ class Lpc(object):
                     cv2.imshow('VideoWindow', censored_frame)
             else:
                 # The next frame is not ready, so we try to read it again
-                cap.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, pos_frame - 1)
+                cap.set(cv2.cv.CV_CAP_PROP_POS_FRAMES,
+                        self.gl_current_frame_pos - 1)
                 print 'frame is not ready'
                 # It is better to wait for a while for the next frame to be ready
                 cv2.waitKey(1000)
