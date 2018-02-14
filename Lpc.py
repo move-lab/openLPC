@@ -77,6 +77,29 @@ class Lpc(object):
 
         cv2.imwrite(save_path, ndarray_image)
         print 'saved file in: ' + save_path
+        self.__write_log(save_path)
+
+    def __write_log(self, filepath):
+        if os.path.exists('./logs/log.txt'):
+            append_write = 'a'  # append if already exists
+        else:
+            append_write = 'w'  # make a new file if not
+
+        log = open('./logs/log.txt', append_write)
+        log.write('-------------------------------' + '\n')
+        log.write("Date:            " + str(datetime.datetime.now()) + '\n')
+        log.write("File:            " + self.gl_filepath + '\n')
+        log.write("Censored File:   " + filepath + '\n')
+        log.write("Matrix Size:     " + str(self.gl_matrix) + '\n')
+        log.write("Multiplier:      " + str(self.gl_multiplier) + '\n')
+        log.write("Output:          " + self.gl_output + '\n')
+        log.write("Total LPs found: " + str(self.gl_counter) + '\n')
+        log.write("ScrennView:      " + str(self.gl_screen_view) + '\n')
+        log.write("Debug:           " + str(self.gl_debug) + '\n')
+        log.write('-------------------------------' + '\n')
+        log.close()
+
+        print 'logfile at: ./logs/log.txt'
 
     def __search_and_censor(self, ndarray_image):
         if not ndarray_image.size:
@@ -86,12 +109,14 @@ class Lpc(object):
         analyzed_file = self.alpr.recognize_ndarray(ndarray_image)
 
         if not analyzed_file['results']:
-            print 'No license plate(s) detected | total: ' + str(self.gl_counter)
+            print 'No license plate(s) detected | total: ' + str(
+                self.gl_counter)
             # sys.exit(1)
         if analyzed_file['results']:
             self.gl_counter = self.gl_counter + len(analyzed_file['results'])
-            print 'found ' + str(len(
-                analyzed_file['results'])) + ' licenece plate(s) | total: ' + str(self.gl_counter)
+            print 'found ' + str(len(analyzed_file['results'])
+                                 ) + ' licenece plate(s) | total: ' + str(
+                                     self.gl_counter)
 
         # loop through the results
         for result in analyzed_file['results']:
@@ -205,13 +230,18 @@ class Lpc(object):
         height = cap.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
         framerate = cap.get(cv2.cv.CV_CAP_PROP_FPS)
 
+        # check if censored folder exists
+        if not os.path.exists(
+                os.path.dirname(self.gl_filepath) + '/censored/'):
+            os.makedirs(os.path.dirname(self.gl_filepath) + '/censored/')
+
         # build output path/name
         filename_without_ext = os.path.splitext(
             os.path.basename(self.gl_filepath))[0]
         save_path = os.path.dirname(
-            self.gl_filepath) + '/' + filename_without_ext + '_' + str(
-                self.gl_matrix
-            ) + 'x' + str(self.gl_matrix) + '_censored_' + str(
+            self.gl_filepath
+        ) + '/censored/' + filename_without_ext + '_' + str(
+            self.gl_matrix) + 'x' + str(self.gl_matrix) + '_censored_' + str(
                 datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')) + '.avi'
 
         # Define the codec and create VideoWriter object
@@ -266,5 +296,6 @@ class Lpc(object):
         cap.release()
         out.release()
         cv2.destroyAllWindows()
+        self.__write_log(save_path)
         print 'total license plates counted: ' + str(self.gl_counter)
         print 'saved censored video file in: ' + save_path
