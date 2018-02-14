@@ -20,14 +20,15 @@ Increasing the matrix size > 1 will result in a faulty result. (WIP)
 ### Arguments
 
 ```
-  -h, --help                show this help message and exit
-  -msize MATRIX_SIZE        Size of the matrix
-  -multiplier MULTIPLIER    Image/Frame mulitplied by given value
-  -path FILEPATH            path to the file (for imagestack: path to the folder)
-  -mode MODE                mode (image, imagestack, video)
-  -output OUTPUT            output format (video, image)
-  -show                     Display the output (screen required)
-  -debug                    Debug mode (pink bar instead of blurred plate)
+  -h, --help              show this help message and exit
+  -msize MATRIX_SIZE      Size of the tiling matrix
+  -multiplier MULTIPLIER  Image/Frame mulitplied by given value for detection accuracy
+  -path FILEPATH          path to the file (for imagestack: path to the folder)
+  -pattern PATTERN        pattern for licnese plate matching (see ./runtime_data/postprocess/)
+  -mode MODE              modes (image, imagestack, video)
+  -output OUTPUT          output format (video, image)
+  -show                   Display the output with cv2.imshow (screen required)
+  -debug                  Debug mode (pink bar instead of blurred plate)
 ```
 
 ### openalpr.config

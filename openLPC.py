@@ -32,6 +32,14 @@ def main():
         type=str,
         required=True)
     parser.add_argument(
+        '-pattern',
+        action='store',
+        default='eu',
+        dest='pattern',
+        help=
+        'pattern for licnese plate matching (see ./runtime_data/postprocess/)',
+        type=str)
+    parser.add_argument(
         '-mode',
         action='store',
         default='image',
@@ -66,6 +74,7 @@ def main():
         lpc.config(
             matrix=args.matrix_size,
             multiplier=args.multiplier,
+            pattern=args.pattern,
             screen_view=args.screen_view,
             debug=args.debug,
             output=args.output,
@@ -75,6 +84,7 @@ def main():
         lpc.config(
             matrix=args.matrix_size,
             multiplier=args.multiplier,
+            pattern=args.pattern,
             screen_view=args.screen_view,
             debug=args.debug,
             output=args.output,
@@ -89,6 +99,7 @@ def main():
         lpc.config(
             matrix=args.matrix_size,
             multiplier=args.multiplier,
+            pattern=args.pattern,
             screen_view=args.screen_view,
             debug=args.debug,
             output=args.output,

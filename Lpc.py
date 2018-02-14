@@ -40,13 +40,14 @@ class Lpc(object):
                screen_view=False,
                debug=False,
                output='image',
+               pattern='eu',
                openALPR_config='openalpr.conf'):
         self.gl_matrix = matrix
         self.gl_multiplier = multiplier
         self.gl_screen_view = screen_view
         self.gl_debug = debug
         self.gl_output = output
-        self.alpr = Alpr('eu', openALPR_config, 'runtime_data')
+        self.alpr = Alpr(pattern, openALPR_config, 'runtime_data')
 
         if self.gl_debug:
             print '--------------------------------'
@@ -85,17 +86,58 @@ class Lpc(object):
         else:
             append_write = 'w'  # make a new file if not
 
+        max_plate_width_percent = ''
+        max_plate_height_percent = ''
+        detection_iteration_increase = ''
+        detection_strictness = ''
+        max_detection_input_width = ''
+        max_detection_input_height = ''
+        postprocess_min_confidence = ''
+        postprocess_confidence_skip_level = ''
+
+        # get config file info
+        with open('openalpr.conf') as f:
+            content = f.readlines()
+            content = [x.strip() for x in content]
+
+            for line in content:
+                if 'max_plate_width_percent' in line:
+                    max_plate_width_percent = line
+                if 'max_plate_height_percent' in line:
+                    max_plate_height_percent = line
+                if 'detection_iteration_increase' in line:
+                    detection_iteration_increase = line
+                if 'detection_strictness' in line:
+                    detection_strictness = line
+                if 'max_detection_input_width' in line:
+                    max_detection_input_width = line
+                if 'max_detection_input_height' in line:
+                    max_detection_input_height = line
+                if 'postprocess_min_confidence' in line:
+                    postprocess_min_confidence = line
+                if 'postprocess_confidence_skip_level' in line:
+                    postprocess_confidence_skip_level = line
+
         log = open('./logs/log.txt', append_write)
         log.write('-------------------------------' + '\n')
-        log.write("Date:            " + str(datetime.datetime.now()) + '\n')
-        log.write("File:            " + self.gl_filepath + '\n')
-        log.write("Censored File:   " + filepath + '\n')
-        log.write("Matrix Size:     " + str(self.gl_matrix) + '\n')
-        log.write("Multiplier:      " + str(self.gl_multiplier) + '\n')
-        log.write("Output:          " + self.gl_output + '\n')
-        log.write("Total LPs found: " + str(self.gl_counter) + '\n')
-        log.write("ScrennView:      " + str(self.gl_screen_view) + '\n')
-        log.write("Debug:           " + str(self.gl_debug) + '\n')
+        log.write('Date:            ' + str(datetime.datetime.now()) + '\n')
+        log.write('File:            ' + self.gl_filepath + '\n')
+        log.write('Censored File:   ' + filepath + '\n')
+        log.write('Matrix Size:     ' + str(self.gl_matrix) + '\n')
+        log.write('Multiplier:      ' + str(self.gl_multiplier) + '\n')
+        log.write('Output:          ' + self.gl_output + '\n')
+        log.write('Total LPs found: ' + str(self.gl_counter) + '\n')
+        log.write('ScrennView:      ' + str(self.gl_screen_view) + '\n')
+        log.write('Debug:           ' + str(self.gl_debug) + '\n')
+        log.write('openALPR config:' '\n')
+        log.write('     ' + max_plate_width_percent + '\n')
+        log.write('     ' + max_plate_height_percent + '\n')
+        log.write('     ' + detection_iteration_increase + '\n')
+        log.write('     ' + detection_strictness + '\n')
+        log.write('     ' + max_detection_input_width + '\n')
+        log.write('     ' + max_detection_input_height + '\n')
+        log.write('     ' + postprocess_min_confidence + '\n')
+        log.write('     ' + postprocess_confidence_skip_level + '\n')
         log.write('-------------------------------' + '\n')
         log.close()
 
@@ -197,7 +239,7 @@ class Lpc(object):
         self.gl_original_image = img
 
         print 'resize image (x' + str(
-            self.gl_multiplier) + '):' + self.gl_filepath + ' ' + str(frame)
+            self.gl_multiplier) + '): ' + self.gl_filepath + ' ' + str(frame)
         img = cv2.resize(
             img, (width * self.gl_multiplier, height * self.gl_multiplier))
         print 'new image size is: ' + str(int(img.shape[1])) + 'x' + str(
